@@ -21,16 +21,28 @@ if __name__ == "__main__":
         parser.error("no base_folder")
 
     fig = plt.figure()
-    pos_ax = fig.add_subplot(121, projection='3d')
-    ori_ax = fig.add_subplot(122, projection='3d')
+    pos_plot = fig.add_subplot(111, projection='3d')
+    fig = plt.figure()
+    ori_plot = fig.add_subplot(111, projection='3d')
 
     files = os.listdir(options.base_folder)
     for f in files:
         path = os.path.join(options.base_folder, f)
         if not os.path.isdir(path):
             continue
+        if f.startswith("bad"):
+            continue
+    
+
+        if os.path.isfile(os.path.join(path, f+'-tag_multimodal.csv')):
+            csv_file_path = os.path.join(path, f+'-tag_multimodal.csv')
+        elif os.path.isfile(os.path.join(path, 'tag_multimodal.csv')):
+            csv_file_path = os.path.join(path, 'tag_multimodal.csv')
+        else:
+            raise Exception("folder %s doesn't have csv file."%(path,))
+
         legend_name = f
-        df = pd.read_csv(os.path.join(path, f+'-tag_multimodal.csv'),sep=',')
+        df = pd.read_csv(csv_file_path, sep=',')
         
         df = df[[
             u'time', 
@@ -48,20 +60,20 @@ if __name__ == "__main__":
         start_time = df.head(1)['time']
         df['time']= df['time']-start_time
 
-        pos_ax.plot(
+        pos_plot.plot(
             df['.endpoint_state.pose.position.x'].tolist(), 
             df['.endpoint_state.pose.position.y'].tolist(), 
             df['.endpoint_state.pose.position.z'].tolist(), 
             label=f)
-        pos_ax.legend()
-        pos_ax.set_title("pos xyz")
+        pos_plot.legend()
+        pos_plot.set_title("pos xyz")
 
-        ori_ax.plot(
+        ori_plot.plot(
             df['.endpoint_state.pose.orientation.x'].tolist(), 
             df['.endpoint_state.pose.orientation.y'].tolist(), 
             df['.endpoint_state.pose.orientation.z'].tolist(), 
             label=f)
-        ori_ax.legend()
-        ori_ax.set_title("ori xyz")
+        ori_plot.legend()
+        ori_plot.set_title("ori xyz")
     plt.show()
 
