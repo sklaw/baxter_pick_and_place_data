@@ -1,0 +1,11 @@
+0.000 cur 0.04 ttl 17.48 cur_global 0.00 cur_io 0.04 cur_local 0.00 ttl_global 3.38 ttl_io 0.65 ttl_local 13.45
+1.000 cur 0.24 ttl 17.71 cur_global 0.06 cur_io 0.01 cur_local 0.16 ttl_global 3.44 ttl_io 0.66 ttl_local 13.61
+2.000 cur 0.23 ttl 17.94 cur_global 0.06 cur_io 0.02 cur_local 0.15 ttl_global 3.51 ttl_io 0.68 ttl_local 13.75
+3.000 cur 0.22 ttl 18.16 cur_global 0.06 cur_io 0.01 cur_local 0.15 ttl_global 3.57 ttl_io 0.69 ttl_local 13.90
+4.000 cur 0.23 ttl 18.39 cur_global 0.07 cur_io 0.02 cur_local 0.14 ttl_global 3.64 ttl_io 0.71 ttl_local 14.04
+5.000 cur 0.23 ttl 18.62 cur_global 0.06 cur_io 0.01 cur_local 0.15 ttl_global 3.69 ttl_io 0.73 ttl_local 14.20
+6.000 cur 0.19 ttl 18.80 cur_global 0.05 cur_io 0.00 cur_local 0.14 ttl_global 3.74 ttl_io 0.73 ttl_local 14.34
+7.000 cur 0.24 ttl 19.04 cur_global 0.06 cur_io 0.00 cur_local 0.18 ttl_global 3.80 ttl_io 0.73 ttl_local 14.52
+8.000 cur 0.25 ttl 19.29 cur_global 0.07 cur_io 0.04 cur_local 0.15 ttl_global 3.87 ttl_io 0.76 ttl_local 14.66
+9.000 cur 0.19 ttl 19.47 cur_global 0.05 cur_io 0.00 cur_local 0.14 ttl_global 3.91 ttl_io 0.76 ttl_local 14.80
+10.000 cur 0.22 ttl 19.69 cur_global 0.05 cur_io 0.02 cur_local 0.15 ttl_global 3.96 ttl_io 0.78 ttl_local 14.95

@@ -1,0 +1,9 @@
+0.000 cur 0.01 ttl 0.36 cur_loadbatch 0.00 cur_saveparams 0.01 ttl_loadbatch 0.00 ttl_saveparams 0.36
+1.000 cur 0.04 ttl 0.40 cur_loadbatch 0.00 cur_saveparams 0.04 ttl_loadbatch 0.00 ttl_saveparams 0.40
+2.000 cur 0.01 ttl 0.40 cur_loadbatch 0.00 cur_saveparams 0.01 ttl_loadbatch 0.00 ttl_saveparams 0.40
+3.000 cur 0.00 ttl 0.40 cur_loadbatch 0.00 cur_saveparams 0.00 ttl_loadbatch 0.00 ttl_saveparams 0.40
+4.000 cur 0.02 ttl 0.42 cur_loadbatch 0.00 cur_saveparams 0.02 ttl_loadbatch 0.00 ttl_saveparams 0.42
+5.000 cur 0.01 ttl 0.43 cur_loadbatch 0.00 cur_saveparams 0.01 ttl_loadbatch 0.00 ttl_saveparams 0.43
+6.000 cur 0.00 ttl 0.43 cur_loadbatch 0.00 cur_saveparams 0.00 ttl_loadbatch 0.00 ttl_saveparams 0.43
+7.000 cur 0.00 ttl 0.43 cur_loadbatch 0.00 cur_saveparams 0.00 ttl_loadbatch 0.00 ttl_saveparams 0.43
+8.000 cur 0.01 ttl 0.44 cur_loadbatch 0.00 cur_saveparams 0.01 ttl_loadbatch 0.00 ttl_saveparams 0.44

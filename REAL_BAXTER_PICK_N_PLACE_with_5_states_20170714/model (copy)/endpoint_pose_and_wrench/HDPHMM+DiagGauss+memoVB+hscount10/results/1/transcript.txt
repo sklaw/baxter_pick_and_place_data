@@ -1,0 +1,41 @@
+WARNING: Found unrecognized keyword args. These are ignored.
+  --convergethr
+  --alpha
+Dataset Summary:
+GroupXData
+  total size: 5 units
+  batch size: 1 units
+  num. batches: 5
+Allocation Model:  None
+Obs. Data  Model:  Gaussian with diagonal covariance.
+Obs. Data  Prior:  independent Gauss-Wishart prior on each dimension
+  Wishart params 
+    nu = 15  ...
+  beta = [ 13  13]  ...
+  Expectations
+  E[  mean[k]] = 
+  [ 0  0] ...
+  E[ covar[k]] = 
+  [[ 1.  0.]
+   [ 0.  1.]] ...
+Initialization:
+  initname = randexamples
+  K = 10 (number of clusters)
+  seed = 1607680
+  elapsed_time: 0.0 sec
+Learn Alg: memoVB | task  1/1 | alg. seed: 1607680 | data order seed: 8541952
+task_output_path: /home/vmrguser/Files_from_Shuangqi_to_Workstation/birl/data_for_or_from_HMM/ML_DATA_Shuangqi/REAL_BAXTER_PICK_N_PLACE_with_5_states_20170714/model/endpoint_pose_and_wrench/HDPHMM+DiagGauss+memoVB+hscount10/results/1
+    0.200/1000 after      0 sec. |    125.7 MiB | K   10 | loss  8.674659738e-01 |  
+    0.400/1000 after      0 sec. |    125.7 MiB | K   10 | loss  5.448375390e-01 |  
+    0.600/1000 after      0 sec. |    125.7 MiB | K   10 | loss  2.923528731e-01 |  
+    1.000/1000 after      1 sec. |    125.7 MiB | K   10 | loss -4.445572174e-02 |  
+    2.000/1000 after      1 sec. |    125.7 MiB | K   10 | loss -4.341763498e-01 | Ndiff  307.474 
+    3.000/1000 after      2 sec. |    125.7 MiB | K   10 | loss -4.373128248e-01 | Ndiff    8.300 
+    4.000/1000 after      2 sec. |    125.7 MiB | K   10 | loss -4.412999349e-01 | Ndiff   19.410 
+    5.000/1000 after      3 sec. |    125.7 MiB | K   10 | loss -4.446468817e-01 | Ndiff   14.660 
+    6.000/1000 after      3 sec. |    125.7 MiB | K   10 | loss -4.447148385e-01 | Ndiff    0.767 
+    7.000/1000 after      4 sec. |    125.7 MiB | K   10 | loss -4.447161445e-01 | Ndiff    0.120 
+    8.000/1000 after      4 sec. |    125.7 MiB | K   10 | loss -4.447161867e-01 | Ndiff    0.011 
+    9.000/1000 after      5 sec. |    125.7 MiB | K   10 | loss -4.447161929e-01 | Ndiff    0.002 
+   10.000/1000 after      5 sec. |    125.7 MiB | K   10 | loss -4.447161949e-01 | Ndiff    0.000 
+... done. converged.

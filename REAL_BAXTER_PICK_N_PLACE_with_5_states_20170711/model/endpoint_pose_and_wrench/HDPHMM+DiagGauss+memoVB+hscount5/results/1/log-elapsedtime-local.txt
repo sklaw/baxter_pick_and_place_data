@@ -1,0 +1,10 @@
+0.000 cur 0.00 ttl 14.65 cur_allocsummary 0.00 cur_allocupdate 0.00 cur_obssummary 0.00 cur_obsupdate 0.00 ttl_allocsummary 0.51 ttl_allocupdate 12.13 ttl_obssummary 0.05 ttl_obsupdate 1.96
+1.000 cur 0.15 ttl 14.79 cur_allocsummary 0.01 cur_allocupdate 0.14 cur_obssummary 0.00 cur_obsupdate 0.00 ttl_allocsummary 0.52 ttl_allocupdate 12.27 ttl_obssummary 0.05 ttl_obsupdate 1.96
+2.000 cur 0.21 ttl 15.00 cur_allocsummary 0.01 cur_allocupdate 0.15 cur_obssummary 0.00 cur_obsupdate 0.05 ttl_allocsummary 0.53 ttl_allocupdate 12.42 ttl_obssummary 0.05 ttl_obsupdate 2.01
+3.000 cur 0.21 ttl 15.21 cur_allocsummary 0.01 cur_allocupdate 0.15 cur_obssummary 0.00 cur_obsupdate 0.05 ttl_allocsummary 0.53 ttl_allocupdate 12.57 ttl_obssummary 0.05 ttl_obsupdate 2.06
+4.000 cur 0.14 ttl 15.36 cur_allocsummary 0.01 cur_allocupdate 0.12 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 0.54 ttl_allocupdate 12.70 ttl_obssummary 0.05 ttl_obsupdate 2.07
+5.000 cur 0.18 ttl 15.54 cur_allocsummary 0.01 cur_allocupdate 0.15 cur_obssummary 0.00 cur_obsupdate 0.02 ttl_allocsummary 0.54 ttl_allocupdate 12.85 ttl_obssummary 0.05 ttl_obsupdate 2.10
+6.000 cur 0.20 ttl 15.74 cur_allocsummary 0.01 cur_allocupdate 0.16 cur_obssummary 0.00 cur_obsupdate 0.04 ttl_allocsummary 0.55 ttl_allocupdate 13.01 ttl_obssummary 0.05 ttl_obsupdate 2.13
+7.000 cur 0.19 ttl 15.93 cur_allocsummary 0.01 cur_allocupdate 0.16 cur_obssummary 0.00 cur_obsupdate 0.02 ttl_allocsummary 0.56 ttl_allocupdate 13.16 ttl_obssummary 0.05 ttl_obsupdate 2.16
+8.000 cur 0.18 ttl 16.10 cur_allocsummary 0.01 cur_allocupdate 0.15 cur_obssummary 0.00 cur_obsupdate 0.02 ttl_allocsummary 0.56 ttl_allocupdate 13.31 ttl_obssummary 0.05 ttl_obsupdate 2.18
+9.000 cur 0.22 ttl 16.32 cur_allocsummary 0.01 cur_allocupdate 0.18 cur_obssummary 0.00 cur_obsupdate 0.03 ttl_allocsummary 0.57 ttl_allocupdate 13.49 ttl_obssummary 0.05 ttl_obsupdate 2.21

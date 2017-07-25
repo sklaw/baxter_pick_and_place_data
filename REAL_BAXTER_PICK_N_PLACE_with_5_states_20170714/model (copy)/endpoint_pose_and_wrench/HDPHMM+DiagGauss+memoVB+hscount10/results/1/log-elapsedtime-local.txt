@@ -1,0 +1,11 @@
+0.000 cur 0.00 ttl 12.03 cur_allocsummary 0.00 cur_allocupdate 0.00 cur_obssummary 0.00 cur_obsupdate 0.00 ttl_allocsummary 1.94 ttl_allocupdate 9.10 ttl_obssummary 0.07 ttl_obsupdate 0.92
+1.000 cur 0.19 ttl 12.22 cur_allocsummary 0.04 cur_allocupdate 0.14 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 1.98 ttl_allocupdate 9.25 ttl_obssummary 0.07 ttl_obsupdate 0.93
+2.000 cur 0.20 ttl 12.42 cur_allocsummary 0.04 cur_allocupdate 0.15 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 2.02 ttl_allocupdate 9.40 ttl_obssummary 0.07 ttl_obsupdate 0.94
+3.000 cur 0.23 ttl 12.66 cur_allocsummary 0.04 cur_allocupdate 0.18 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 2.06 ttl_allocupdate 9.57 ttl_obssummary 0.08 ttl_obsupdate 0.95
+4.000 cur 0.21 ttl 12.87 cur_allocsummary 0.05 cur_allocupdate 0.15 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 2.11 ttl_allocupdate 9.72 ttl_obssummary 0.08 ttl_obsupdate 0.96
+5.000 cur 0.22 ttl 13.09 cur_allocsummary 0.05 cur_allocupdate 0.16 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 2.15 ttl_allocupdate 9.88 ttl_obssummary 0.08 ttl_obsupdate 0.97
+6.000 cur 0.20 ttl 13.28 cur_allocsummary 0.04 cur_allocupdate 0.15 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 2.19 ttl_allocupdate 10.02 ttl_obssummary 0.08 ttl_obsupdate 0.99
+7.000 cur 0.20 ttl 13.48 cur_allocsummary 0.04 cur_allocupdate 0.15 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 2.23 ttl_allocupdate 10.17 ttl_obssummary 0.08 ttl_obsupdate 1.00
+8.000 cur 0.23 ttl 13.72 cur_allocsummary 0.05 cur_allocupdate 0.17 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 2.28 ttl_allocupdate 10.35 ttl_obssummary 0.08 ttl_obsupdate 1.01
+9.000 cur 0.23 ttl 13.95 cur_allocsummary 0.04 cur_allocupdate 0.18 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 2.32 ttl_allocupdate 10.52 ttl_obssummary 0.08 ttl_obsupdate 1.02
+10.000 cur 0.20 ttl 14.15 cur_allocsummary 0.03 cur_allocupdate 0.16 cur_obssummary 0.00 cur_obsupdate 0.01 ttl_allocsummary 2.35 ttl_allocupdate 10.68 ttl_obssummary 0.09 ttl_obsupdate 1.03

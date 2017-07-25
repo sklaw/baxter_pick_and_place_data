@@ -1,0 +1,38 @@
+WARNING: Found unrecognized keyword args. These are ignored.
+  --convergethr
+  --alpha
+Dataset Summary:
+GroupXData
+  total size: 5 units
+  batch size: 5 units
+  num. batches: 1
+Allocation Model:  None
+Obs. Data  Model:  Gaussian with diagonal covariance.
+Obs. Data  Prior:  independent Gauss-Wishart prior on each dimension
+  Wishart params 
+    nu = 15  ...
+  beta = [ 13  13]  ...
+  Expectations
+  E[  mean[k]] = 
+  [ 0  0] ...
+  E[ covar[k]] = 
+  [[ 1.  0.]
+   [ 0.  1.]] ...
+Initialization:
+  initname = randexamples
+  K = 10 (number of clusters)
+  seed = 1607680
+  elapsed_time: 0.0 sec
+Learn Alg: memoVB | task  1/1 | alg. seed: 1607680 | data order seed: 8541952
+task_output_path: /home/vmrguser/Desktop/shuangqi/Files_from_Shuangqi_to_Workstation/birl/data_for_or_from_HMM/ML_DATA_Shuangqi/REAL_BAXTER_PICK_N_PLACE_with_5_states_20170711/model/endpoint_pose_and_wrench/HDPHMM+DiagGauss+memoVB/results/1
+    1.000/1000 after      0 sec. |    125.5 MiB | K   10 | loss  2.526864706e-01 |  
+    2.000/1000 after      0 sec. |    125.5 MiB | K   10 | loss  1.178462002e-01 | Ndiff  248.992 
+    3.000/1000 after      1 sec. |    125.5 MiB | K   10 | loss -2.058529467e-01 | Ndiff  815.573 
+    4.000/1000 after      1 sec. |    125.5 MiB | K   10 | loss -4.289953369e-01 | Ndiff  557.352 
+    5.000/1000 after      1 sec. |    125.5 MiB | K   10 | loss -4.523709963e-01 | Ndiff   35.500 
+    6.000/1000 after      1 sec. |    125.5 MiB | K   10 | loss -4.572023735e-01 | Ndiff    3.538 
+    7.000/1000 after      2 sec. |    125.5 MiB | K   10 | loss -4.572416140e-01 | Ndiff    0.674 
+    8.000/1000 after      2 sec. |    125.5 MiB | K   10 | loss -4.572530766e-01 | Ndiff    0.121 
+    9.000/1000 after      2 sec. |    125.5 MiB | K   10 | loss -4.572589004e-01 | Ndiff    0.022 
+   10.000/1000 after      2 sec. |    125.5 MiB | K   10 | loss -4.572621310e-01 | Ndiff    0.004 
+... done. converged.
