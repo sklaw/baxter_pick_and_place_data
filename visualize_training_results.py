@@ -17,12 +17,17 @@ def get_model_score(files_in_model_id_folder):
 
 if __name__ == "__main__":
     from optparse import OptionParser
-    usage = "usage: %prog -d data_folder_path"
+    usage = "usage: %prog -d data_folder_path --model-id-prefix model_id_prefix"
     parser = OptionParser(usage=usage)
 
     parser.add_option("-d", "--data-folder",
         action="store", type="string", dest="data_folder",
         help="provide a data folder which will have this structure: ./model, ./success, ./figure")
+
+    parser.add_option("--model-id-prefix",
+        action="store", type="string", dest="model_id_prefix",
+        default='',
+        help="model_id_prefix to filter models")
     (options, args) = parser.parse_args()
 
     if options.data_folder is None:
@@ -50,6 +55,9 @@ if __name__ == "__main__":
 
             for model_id in os.listdir(mt_path):
                 print ' \t\t -> model_id', model_id
+                if not model_id.startswith(options.model_id_prefix):
+                    print 'prefix mismatch, skipped'
+                    continue
                 mi_path = os.path.join(mt_path, model_id)
                 if not os.path.isdir(mi_path):
                     continue
@@ -66,7 +74,7 @@ if __name__ == "__main__":
     model_amount = len(y_multi)
     state_amount = len(y_multi[0]) 
 
-    width = 0.9/model_amount
+    width = 0.7/model_amount
     x = range(1, state_amount+1)
 
     import matplotlib.pyplot as plt
@@ -78,8 +86,11 @@ if __name__ == "__main__":
     fig = plt.figure()
     ax = fig.add_subplot(111)
     for i in range(len(y_multi)):
-        c=next(color)
-        ax.bar([j+i*width for j in x], y_multi[i], width=width, label=labels[i], color=c)
+        try:
+            c=next(color)
+            ax.bar([j+i*width for j in x], y_multi[i], width=width, label=labels[i], color=c)
+        except AssertionError:
+            print labels[i], y_multi[i], ' is problematic.'
 
     ax.legend(loc=3)
     plt.show()
