@@ -7,6 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 
+
 if __name__ == "__main__":
     from optparse import OptionParser
     usage = "usage: %prog -d base_folder_path"
@@ -23,8 +24,10 @@ if __name__ == "__main__":
     fig = plt.figure()
     pos_plot = fig.add_subplot(111, projection='3d')
     fig = plt.figure()
-    ori_xyz = fig.add_subplot(211, projection='3d')
-    ori_w = fig.add_subplot(212)
+    ori_x = fig.add_subplot(411)
+    ori_y = fig.add_subplot(412)
+    ori_z = fig.add_subplot(413)
+    ori_w = fig.add_subplot(414)
     fig = plt.figure()
     fx = fig.add_subplot(321)
     fy = fig.add_subplot(322)
@@ -35,13 +38,17 @@ if __name__ == "__main__":
 
 
     files = os.listdir(options.base_folder)
+
+    from matplotlib.pyplot import cm 
+    import numpy as np
+    color=iter(cm.rainbow(np.linspace(0, 1, len(files))))
+
     for f in files:
         path = os.path.join(options.base_folder, f)
         if not os.path.isdir(path):
             continue
-        if f.startswith("bad"):
-            continue
-    
+
+        c = color.next()
 
         if os.path.isfile(os.path.join(path, f+'-tag_multimodal.csv')):
             csv_file_path = os.path.join(path, f+'-tag_multimodal.csv')
@@ -54,6 +61,8 @@ if __name__ == "__main__":
         df = pd.read_csv(csv_file_path, sep=',')
         
         df = df.loc[df['.tag'] != 0]
+        df.index = np.arange(1, len(df)+1)
+
         df['time']= pd.to_datetime(df['time'], coerce=True)
         start_time = df.head(1)['time']
         df['time']= df['time']-start_time
@@ -62,20 +71,38 @@ if __name__ == "__main__":
             df['.endpoint_state.pose.position.x'].tolist(), 
             df['.endpoint_state.pose.position.y'].tolist(), 
             df['.endpoint_state.pose.position.z'].tolist(), 
+            color=c,
             label=f)
         pos_plot.legend()
         pos_plot.set_title("pos xyz")
 
-        ori_xyz.plot(
+        ori_x.plot(
+            df.index.tolist(),
             df['.endpoint_state.pose.orientation.x'].tolist(), 
+            color=c,
+            label=f
+        )
+        ori_x.set_title("ori x")
+
+        ori_y.plot(
+            df.index.tolist(),
             df['.endpoint_state.pose.orientation.y'].tolist(), 
+            color=c,
+            label=f
+        )
+        ori_y.set_title("ori y")
+
+        ori_z.plot(
+            df.index.tolist(),
             df['.endpoint_state.pose.orientation.z'].tolist(), 
-            label=f)
-        ori_xyz.legend()
-        ori_xyz.set_title("ori xyz")
+            color=c,
+            label=f
+        )
+        ori_z.set_title("ori z")
 
         ori_w.plot(
             df['.endpoint_state.pose.orientation.w'].tolist(), 
+            color=c,
             label=f
         )
         ori_w.legend()
@@ -84,38 +111,39 @@ if __name__ == "__main__":
 
         fx.plot(
             df['.wrench_stamped.wrench.force.x'].tolist(), 
+            color=c,
             label=f)
         fx.legend()
         fx.set_title("fx")
 
         fy.plot(
             df['.wrench_stamped.wrench.force.y'].tolist(), 
+            color=c,
             label=f)
-        fy.legend()
         fy.set_title("fy")
 
         fz.plot(
             df['.wrench_stamped.wrench.force.z'].tolist(), 
+            color=c,
             label=f)
-        fz.legend()
         fz.set_title("fz")
 
         mx.plot(
             df['.wrench_stamped.wrench.torque.x'].tolist(), 
+            color=c,
             label=f)
-        mx.legend()
         mx.set_title("mx")
 
         my.plot(
             df['.wrench_stamped.wrench.torque.y'].tolist(), 
+            color=c,
             label=f)
-        my.legend()
         my.set_title("my")
 
         mz.plot(
             df['.wrench_stamped.wrench.torque.z'].tolist(), 
+            color=c,
             label=f)
-        mz.legend()
         mz.set_title("mz")
 
     plt.show()

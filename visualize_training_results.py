@@ -1,4 +1,5 @@
 import os
+import ipdb
 
 def get_model_score(files_in_model_id_folder):
     import re
@@ -68,6 +69,8 @@ if __name__ == "__main__":
                 for state_no in sorted(score_group_by_state):
                     score_list.append(score_group_by_state[state_no])
 
+                if len(score_list) == 0:
+                    continue
                 y_multi.append(score_list)
                 labels.append("%s->%s->%s"%(data_type, model_type, model_id))
 
@@ -82,6 +85,7 @@ if __name__ == "__main__":
     import numpy as np
 
     color=iter(cm.rainbow(np.linspace(0,1,model_amount)))
+
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
