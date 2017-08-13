@@ -81,9 +81,6 @@ if __name__ == "__main__":
         if not os.path.isdir(path):
             continue
 
-        if 'without_recovery' in f:
-            continue
-
         if os.path.isfile(os.path.join(path, f+'-tag_multimodal.csv')):
             tag_multimodal_csv_path = os.path.join(path, f+'-tag_multimodal.csv')
         elif os.path.isfile(os.path.join(path, 'tag_multimodal.csv')):
