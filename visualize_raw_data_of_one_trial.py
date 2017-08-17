@@ -1,8 +1,6 @@
 import os
 import pandas as pd
 from datetime import datetime
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.pyplot import cm 
 import numpy as np
 import load_data_folder
 import plot_data_in_panda_df
