@@ -30,7 +30,11 @@ if __name__ == "__main__":
 
     plot_data_in_panda_df.init_plots()
     for f, df in df_group_by_foldername.iteritems():
+        df = df.loc[df['.tag'] != 0]
+        df.index = np.arange(1, len(df)+1)
         c=next(color)
         plot_data_in_panda_df.plot_one_df(df, color=c, label=f)
+    
+    plot_data_in_panda_df.plot_legend()
     plot_data_in_panda_df.show_plots()
 

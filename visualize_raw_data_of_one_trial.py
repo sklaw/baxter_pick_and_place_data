@@ -31,6 +31,7 @@ if __name__ == "__main__":
     df['time']= df['time']-start_time
 
     state_amount = len(df['.tag'].unique())
+    from matplotlib.pyplot import cm 
     color=iter(cm.rainbow(np.linspace(0, 1, state_amount)))
 
     plot_data_in_panda_df.init_plots()

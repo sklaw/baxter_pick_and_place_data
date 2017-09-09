@@ -38,12 +38,38 @@ def init_plots():
     ori_w = fig.add_subplot(414)
 
     fig = plt.figure()
-    fx = fig.add_subplot(611)
-    fy = fig.add_subplot(612)
-    fz = fig.add_subplot(613)
-    mx = fig.add_subplot(614)
-    my = fig.add_subplot(615)
-    mz = fig.add_subplot(616)
+    fx = fig.add_subplot(231)
+    fy = fig.add_subplot(232)
+    fz = fig.add_subplot(233)
+    mx = fig.add_subplot(234)
+    my = fig.add_subplot(235)
+    mz = fig.add_subplot(236)
+
+def plot_legend():
+    global pos_plot
+    global ori_x
+    global ori_y
+    global ori_z
+    global ori_w
+    global fx
+    global fy
+    global fz
+    global mx
+    global my
+    global mz
+
+    pos_plot.legend()
+    ori_x.legend()
+    ori_y.legend()
+    ori_z.legend()
+    ori_w.legend()
+    fx.legend()
+    fy.legend()
+    fz.legend()
+    mx.legend()
+    my.legend()
+    mz.legend()
+
 
 def plot_one_df(df, color, label):
     global pos_plot
