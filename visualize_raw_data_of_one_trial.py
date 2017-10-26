@@ -26,10 +26,6 @@ if __name__ == "__main__":
     df = df.loc[df['.tag'] != 0]
     df.index = np.arange(1, len(df)+1)
 
-    df['time']= pd.to_datetime(df['time'], coerce=True)
-    start_time = df.head(1)['time']
-    df['time']= df['time']-start_time
-
     state_amount = len(df['.tag'].unique())
     from matplotlib.pyplot import cm 
     color=iter(cm.rainbow(np.linspace(0, 1, state_amount)))
@@ -38,6 +34,7 @@ if __name__ == "__main__":
     for state_no in df['.tag'].unique():
         c=next(color)
         state_df = df.loc[df['.tag'] == state_no]
-        plot_data_in_panda_df.plot_one_df(state_df, color=c, label=f)
+        plot_data_in_panda_df.plot_one_df(state_df, color=c, label=state_no)
+    plot_data_in_panda_df.plot_legend()
     plot_data_in_panda_df.show_plots()
 
