@@ -24,11 +24,10 @@ def color_bg_and_anomaly(
     plot,
     tag_df,
     list_of_anomaly_start_time,
-    list_of_anomaly_time_range,
 ):
     tag_df_length = tag_df.shape[0]
     start_t = 0
-    state_color = {0: "white", 2: "green", 5: "green"}
+    state_color = {0: "gray", 2: "green", 5: "green"}
     color=iter(cm.rainbow(np.linspace(0, 1, 10)))
     for t in range(1, tag_df_length):
         if tag_df['.tag'][t-1] == tag_df['.tag'][t] and t < len(tag_df['.tag'])-1:
@@ -40,17 +39,15 @@ def color_bg_and_anomaly(
         elif skill == -2:
             color = 'black'
         elif skill == -3:
-            color = 'blue'
+            color = 'yellow'
         else:
             color = state_color[skill]
-        plot.axvspan(tag_df['time'][start_t], tag_df['time'][end_t], facecolor=color, ymax=1, ymin=0.8)
+        plot.axvspan(tag_df['time'][start_t], tag_df['time'][end_t], facecolor=color, ymax=1, ymin=0.95)
         start_t = t
-    for tmp in list_of_anomaly_time_range:
-        start_t = tag_df['time'][tmp[0]]
-        end_t = tag_df['time'][tmp[1]] 
-        plot.axvspan(start_t, end_t, facecolor='pink', ymax=0.8, ymin=0)
+
     for t in list_of_anomaly_start_time:
         plot.axvline(t, color='red')
+        plot.axvspan(t-2, t+2, facecolor='pink', ymax=0.95, ymin=0)
 
 
 
@@ -64,15 +61,7 @@ def get_anomaly_range(tag_df, flag_df):
         if now_time-last_time > timedelta(seconds=2):
             list_of_anomaly_start_time.append(now_time) 
 
-    list_of_anomaly_time_range = []
-    for t in list_of_anomaly_start_time:
-        range_start = tag_df[tag_df['time']>t-timedelta(seconds=1)].head(1)
-        range_end = tag_df[tag_df['time']>t+timedelta(seconds=1)].head(1)
-        list_of_anomaly_time_range.append([
-            range_start.index[0], 
-            range_end.index[0]
-        ])
-    return list_of_anomaly_start_time, list_of_anomaly_time_range 
+    return list_of_anomaly_start_time
 
 if __name__ == "__main__":
     from optparse import OptionParser
@@ -88,17 +77,17 @@ if __name__ == "__main__":
         parser.error("no base_folder")
 
     base_folder = options.base_folder
-
-
+    anomalous_trial_folder = os.path.join(base_folder, "anomalous_trials")
+    if not os.path.isdir(anomalous_trial_folder):
+        raise Exception("anomalous trial folder not found")
 
     to_plot = []
-
-
-    files = os.listdir(base_folder)
+    files = os.listdir(anomalous_trial_folder)
     for f in files:
-        path = os.path.join(base_folder, f)
+        path = os.path.join(anomalous_trial_folder, f)
         if not os.path.isdir(path):
             continue
+        print 'processing', f
 
         if os.path.isfile(os.path.join(path, f+'-tag_multimodal.csv')):
             tag_multimodal_csv_path = os.path.join(path, f+'-tag_multimodal.csv')
@@ -123,20 +112,22 @@ if __name__ == "__main__":
         tag_multimodal_df.index = np.arange(len(tag_multimodal_df))
         hmm_online_result_df.index = np.arange(len(hmm_online_result_df))
 
-        print
-        print '-'*20
-        print f
-        list_of_anomaly_start_time, list_of_anomaly_time_range = get_anomaly_range(
+        list_of_anomaly_start_time = get_anomaly_range(
             tag_multimodal_df,
             hmm_online_result_df,
         )
-        print list_of_anomaly_time_range
-        print '-'*20
+
+        start_t = tag_multimodal_df['time'][0]
+        tag_multimodal_df['time'] -= start_t
+        tag_multimodal_df['time'] = tag_multimodal_df['time'].apply(lambda x: x.total_seconds())
+        for i in range(len(list_of_anomaly_start_time)):
+            list_of_anomaly_start_time[i] -= start_t
+            list_of_anomaly_start_time[i] = list_of_anomaly_start_time[i].total_seconds()
 
         to_plot.append([
+            f,
             tag_multimodal_df,
             list_of_anomaly_start_time,
-            list_of_anomaly_time_range
         ])
 
     dimensions = [
@@ -155,14 +146,24 @@ if __name__ == "__main__":
         '.wrench_stamped.wrench.torque.z',
     ]
 
+    import datetime
+    output_dir = os.path.join(base_folder, "extracted_anomalies", str(datetime.datetime.now()))
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+
+    visualization_by_dimension_dir = os.path.join(output_dir, 'visualization_by_dimension')
+    os.makedirs(visualization_by_dimension_dir)
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+
     for dim in dimensions:
         subplot_amount = len(to_plot)
-        fig, axs = plt.subplots(nrows=subplot_amount, ncols=1)
+        fig, axs = plt.subplots(nrows=subplot_amount, ncols=1, sharex=True, sharey=True)
         if subplot_amount == 1:
             axs = [axs]
 
         for idx, tmp in enumerate(to_plot):
-            tag_multimodal_df, list_of_anomaly_start_time, list_of_anomaly_time_range = tmp
+            f, tag_multimodal_df, list_of_anomaly_start_time = tmp
             df = tag_multimodal_df
             if dim not in df:
                 continue
@@ -171,17 +172,13 @@ if __name__ == "__main__":
             ax.plot(
                 df['time'].tolist(),
                 df[dim].tolist(), 
-                label=f
             )
-
+            ax.set_title('trial: '+f+'.bag')
             color_bg_and_anomaly(
                 ax,
-                tag_multimodal_df,
+                df,
                 list_of_anomaly_start_time,
-                list_of_anomaly_time_range
             )
+        fig.set_size_inches(16,4*subplot_amount)
         fig.suptitle(dim)
-    plt.show()
-
-
-
+        fig.savefig(os.path.join(visualization_by_dimension_dir, dim+'.png'))
