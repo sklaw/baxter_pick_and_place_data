@@ -144,6 +144,7 @@ if __name__ == "__main__":
 
         from birl.robot_introspection_pkg.anomaly_sampling_config import anomaly_window_size_in_sec, anomaly_resample_hz
         list_of_anomaly_df = []
+        list_of_resampled_anomaly_df = []
         for anomaly_idx, anomaly_t in enumerate(list_of_anomaly_start_time):
             search_start = anomaly_t-anomaly_window_size_in_sec/2-1            
             search_end = anomaly_t+anomaly_window_size_in_sec/2+1
@@ -152,6 +153,7 @@ if __name__ == "__main__":
                 (tag_multimodal_df['time'] <= search_end)\
             ]
             list_of_anomaly_df.append(anomaly_df)
+
             anomaly_df = anomaly_df.drop('.tag', axis=1).set_index('time')
             anomaly_name = 'no_%s_from_trial_%s'%(anomaly_idx, f)
             anomaly_df.to_csv(os.path.join(raw_anomalies_dir, anomaly_name+'.csv'))
@@ -160,15 +162,14 @@ if __name__ == "__main__":
             resampled_anomaly_df = anomaly_df.reindex(old_time_index.union(new_time_index)).interpolate(method='linear', axis=0).ix[new_time_index]
             anomaly_name = 'resampled_%shz_no_%s_from_trial_%s'%(anomaly_resample_hz, anomaly_idx, f)
             resampled_anomaly_df.to_csv(os.path.join(resampled_anomalies_dir, anomaly_name+'.csv'))
-
-            
-            
+            list_of_resampled_anomaly_df.append(resampled_anomaly_df)
 
         to_plot.append([
             f,
             tag_multimodal_df,
             list_of_anomaly_start_time,
             list_of_anomaly_df,
+            resampled_anomaly_df,
         ])
         break
 
@@ -178,18 +179,19 @@ if __name__ == "__main__":
     os.makedirs(visualization_by_dimension_dir)
 
     for dim in dimensions:
-        subplot_amount = len(to_plot)
-        fig, axs = plt.subplots(nrows=subplot_amount, ncols=1, sharex=True, sharey=True)
-        if subplot_amount == 1:
-            axs = [axs]
+        trial_amount = len(to_plot)
+        anomaly_in_trial_fig, axs_for_ait_fig = plt.subplots(nrows=trial_amount, ncols=1, sharex=True, sharey=True)
+        if trial_amount == 1:
+            axs_for_ait_fig = [axs_for_ait_fig]
 
         for idx, tmp in enumerate(to_plot):
             f, \
             tag_multimodal_df, \
             list_of_anomaly_start_time, \
-            list_of_anomaly_df = tmp
+            list_of_anomaly_df, \
+            resampled_anomaly_df = tmp
 
-            ax = axs[idx]
+            ax = axs_for_ait_fig[idx]
             ax.plot(
                 tag_multimodal_df['time'].tolist(),
                 tag_multimodal_df[dim].tolist(), 
@@ -208,8 +210,8 @@ if __name__ == "__main__":
                     color='red',
                 )
                     
-        fig.set_size_inches(16,4*subplot_amount)
-        fig.suptitle(dim)
-        fig.savefig(os.path.join(visualization_by_dimension_dir, dim+'.png'))
+        anomaly_in_trial_fig.set_size_inches(16,4*trial_amount)
+        anomaly_in_trial_fig.suptitle(dim)
+        anomaly_in_trial_fig.savefig(os.path.join(visualization_by_dimension_dir, dim+'.png'))
 
 
