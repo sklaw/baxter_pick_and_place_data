@@ -9,6 +9,8 @@ import ipdb
 import matplotlib.dates as mdates 
 import numpy as np
 from matplotlib.pyplot import cm 
+import copy
+import birl.robot_introspection_pkg.multi_modal_config as mmc
 
 def trim_non_trial_data(tag_multimodal_df, hmm_online_result_df):
     state_df = tag_multimodal_df[tag_multimodal_df['.tag'] != 0]
@@ -77,12 +79,27 @@ if __name__ == "__main__":
         parser.error("no base_folder")
 
     base_folder = options.base_folder
-    anomalous_trial_folder = os.path.join(base_folder, "anomalous_trials")
+
+    anomalous_trial_folder = os.path.join(base_folder, "anomalous_trial_rosbags")
     if not os.path.isdir(anomalous_trial_folder):
         raise Exception("anomalous trial folder not found")
 
+
+
+    import datetime
+    extracted_anomalies_dir = os.path.join(base_folder, "extracted_anomalies_dir", str(datetime.datetime.now()))
+    os.makedirs(extracted_anomalies_dir)
+    raw_anomalies_dir = os.path.join(extracted_anomalies_dir, 'raw_anomalies_dir')
+    os.makedirs(raw_anomalies_dir)
+    resampled_anomalies_dir = os.path.join(extracted_anomalies_dir, 'resampled_anomalies_dir')
+    os.makedirs(resampled_anomalies_dir)
+
+    interested_data_fields = copy.deepcopy(mmc.interested_data_fields)
+    interested_data_fields.append('time')
+
     to_plot = []
     files = os.listdir(anomalous_trial_folder)
+    files.sort()
     for f in files:
         path = os.path.join(anomalous_trial_folder, f)
         if not os.path.isdir(path):
@@ -102,6 +119,7 @@ if __name__ == "__main__":
             raise Exception("folder %s doesn't have hmm_online_result csv file."%(path,))
 
         tag_multimodal_df = pd.read_csv(tag_multimodal_csv_path, sep=',')
+        tag_multimodal_df = tag_multimodal_df[interested_data_fields]
         hmm_online_result_df = pd.read_csv(hmm_online_result_csv_path, sep=',')
 
 
@@ -124,37 +142,40 @@ if __name__ == "__main__":
             list_of_anomaly_start_time[i] -= start_t
             list_of_anomaly_start_time[i] = list_of_anomaly_start_time[i].total_seconds()
 
+        from birl.robot_introspection_pkg.anomaly_sampling_config import anomaly_window_size_in_sec, anomaly_resample_hz
+        list_of_anomaly_df = []
+        for anomaly_idx, anomaly_t in enumerate(list_of_anomaly_start_time):
+            search_start = anomaly_t-anomaly_window_size_in_sec/2-1            
+            search_end = anomaly_t+anomaly_window_size_in_sec/2+1
+            anomaly_df = tag_multimodal_df[\
+                (tag_multimodal_df['time'] >= search_start) &\
+                (tag_multimodal_df['time'] <= search_end)\
+            ]
+            list_of_anomaly_df.append(anomaly_df)
+            anomaly_df = anomaly_df.drop('.tag', axis=1).set_index('time')
+            anomaly_name = 'no_%s_from_trial_%s'%(anomaly_idx, f)
+            anomaly_df.to_csv(os.path.join(raw_anomalies_dir, anomaly_name+'.csv'))
+            new_time_index = np.linspace(anomaly_t-anomaly_window_size_in_sec/2, anomaly_t+anomaly_window_size_in_sec/2, anomaly_window_size_in_sec*anomaly_resample_hz)
+            old_time_index = anomaly_df.index
+            resampled_anomaly_df = anomaly_df.reindex(old_time_index.union(new_time_index)).interpolate(method='linear', axis=0).ix[new_time_index]
+            anomaly_name = 'resampled_%shz_no_%s_from_trial_%s'%(anomaly_resample_hz, anomaly_idx, f)
+            resampled_anomaly_df.to_csv(os.path.join(resampled_anomalies_dir, anomaly_name+'.csv'))
+
+            
+            
+
         to_plot.append([
             f,
             tag_multimodal_df,
             list_of_anomaly_start_time,
+            list_of_anomaly_df,
         ])
+        break
 
-    dimensions = [
-        '.endpoint_state.pose.position.x',
-        '.endpoint_state.pose.position.y',
-        '.endpoint_state.pose.position.z',
-        '.endpoint_state.pose.orientation.x',
-        '.endpoint_state.pose.orientation.y',
-        '.endpoint_state.pose.orientation.z',
-        '.endpoint_state.pose.orientation.w',
-        '.wrench_stamped.wrench.force.x',
-        '.wrench_stamped.wrench.force.y',
-        '.wrench_stamped.wrench.force.z',
-        '.wrench_stamped.wrench.torque.x',
-        '.wrench_stamped.wrench.torque.y',
-        '.wrench_stamped.wrench.torque.z',
-    ]
+    dimensions = mmc.interested_data_fields
 
-    import datetime
-    output_dir = os.path.join(base_folder, "extracted_anomalies", str(datetime.datetime.now()))
-    if not os.path.isdir(output_dir):
-        os.makedirs(output_dir)
-
-    visualization_by_dimension_dir = os.path.join(output_dir, 'visualization_by_dimension')
+    visualization_by_dimension_dir = os.path.join(extracted_anomalies_dir, 'visualization_by_dimension_dir')
     os.makedirs(visualization_by_dimension_dir)
-    if not os.path.isdir(output_dir):
-        os.makedirs(output_dir)
 
     for dim in dimensions:
         subplot_amount = len(to_plot)
@@ -163,22 +184,32 @@ if __name__ == "__main__":
             axs = [axs]
 
         for idx, tmp in enumerate(to_plot):
-            f, tag_multimodal_df, list_of_anomaly_start_time = tmp
-            df = tag_multimodal_df
-            if dim not in df:
-                continue
+            f, \
+            tag_multimodal_df, \
+            list_of_anomaly_start_time, \
+            list_of_anomaly_df = tmp
 
             ax = axs[idx]
             ax.plot(
-                df['time'].tolist(),
-                df[dim].tolist(), 
+                tag_multimodal_df['time'].tolist(),
+                tag_multimodal_df[dim].tolist(), 
             )
             ax.set_title('trial: '+f+'.bag')
             color_bg_and_anomaly(
                 ax,
-                df,
+                tag_multimodal_df,
                 list_of_anomaly_start_time,
             )
+
+            for anomaly_df in list_of_anomaly_df:
+                ax.plot(
+                    anomaly_df['time'].tolist(),
+                    anomaly_df[dim].tolist(),
+                    color='red',
+                )
+                    
         fig.set_size_inches(16,4*subplot_amount)
         fig.suptitle(dim)
         fig.savefig(os.path.join(visualization_by_dimension_dir, dim+'.png'))
+
+
