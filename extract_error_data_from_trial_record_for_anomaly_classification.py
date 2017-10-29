@@ -12,7 +12,7 @@ from matplotlib.pyplot import cm
 import copy
 import birl.robot_introspection_pkg.multi_modal_config as mmc
 
-PLOT_VERIFICATION = False
+PLOT_VERIFICATION = True 
 
 def trim_non_trial_data(tag_multimodal_df, hmm_online_result_df):
     state_df = tag_multimodal_df[tag_multimodal_df['.tag'] != 0]
