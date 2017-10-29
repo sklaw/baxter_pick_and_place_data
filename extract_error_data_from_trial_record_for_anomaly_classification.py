@@ -12,6 +12,8 @@ from matplotlib.pyplot import cm
 import copy
 import birl.robot_introspection_pkg.multi_modal_config as mmc
 
+PLOT_VERIFICATION = False
+
 def trim_non_trial_data(tag_multimodal_df, hmm_online_result_df):
     state_df = tag_multimodal_df[tag_multimodal_df['.tag'] != 0]
     row = state_df.head(1)
@@ -146,20 +148,27 @@ if __name__ == "__main__":
         list_of_anomaly_df = []
         list_of_resampled_anomaly_df = []
         for anomaly_idx, anomaly_t in enumerate(list_of_anomaly_start_time):
-            search_start = anomaly_t-anomaly_window_size_in_sec/2-1            
-            search_end = anomaly_t+anomaly_window_size_in_sec/2+1
+            search_start = anomaly_t-anomaly_window_size_in_sec/2
+            search_end = anomaly_t+anomaly_window_size_in_sec/2
             anomaly_df = tag_multimodal_df[\
                 (tag_multimodal_df['time'] >= search_start) &\
                 (tag_multimodal_df['time'] <= search_end)\
             ]
-            list_of_anomaly_df.append(anomaly_df)
-
             anomaly_df = anomaly_df.drop('.tag', axis=1).set_index('time')
             anomaly_name = 'no_%s_from_trial_%s'%(anomaly_idx, f)
             anomaly_df.to_csv(os.path.join(raw_anomalies_dir, anomaly_name+'.csv'))
+            list_of_anomaly_df.append(anomaly_df)
+
+            search_start = anomaly_t-anomaly_window_size_in_sec/2-1            
+            search_end = anomaly_t+anomaly_window_size_in_sec/2+1
+            search_df = tag_multimodal_df[\
+                (tag_multimodal_df['time'] >= search_start) &\
+                (tag_multimodal_df['time'] <= search_end)\
+            ]
+            search_df = search_df.drop('.tag', axis=1).set_index('time')
             new_time_index = np.linspace(anomaly_t-anomaly_window_size_in_sec/2, anomaly_t+anomaly_window_size_in_sec/2, anomaly_window_size_in_sec*anomaly_resample_hz)
-            old_time_index = anomaly_df.index
-            resampled_anomaly_df = anomaly_df.reindex(old_time_index.union(new_time_index)).interpolate(method='linear', axis=0).ix[new_time_index]
+            old_time_index = search_df.index
+            resampled_anomaly_df = search_df.reindex(old_time_index.union(new_time_index)).interpolate(method='linear', axis=0).ix[new_time_index]
             anomaly_name = 'resampled_%shz_no_%s_from_trial_%s'%(anomaly_resample_hz, anomaly_idx, f)
             resampled_anomaly_df.to_csv(os.path.join(resampled_anomalies_dir, anomaly_name+'.csv'))
             list_of_resampled_anomaly_df.append(resampled_anomaly_df)
@@ -169,14 +178,25 @@ if __name__ == "__main__":
             tag_multimodal_df,
             list_of_anomaly_start_time,
             list_of_anomaly_df,
-            resampled_anomaly_df,
+            list_of_resampled_anomaly_df,
         ])
-        break
 
-    dimensions = mmc.interested_data_fields
+    if not PLOT_VERIFICATION:
+        import sys
+        sys.exit(0)
+        
+
+    dimensions = copy.deepcopy(mmc.interested_data_fields)
+    if '.tag' in dimensions:
+        idx_to_del = dimensions.index('.tag')
+        del dimensions[idx_to_del]
 
     visualization_by_dimension_dir = os.path.join(extracted_anomalies_dir, 'visualization_by_dimension_dir')
     os.makedirs(visualization_by_dimension_dir)
+    anomaly_in_trial_dir = os.path.join(visualization_by_dimension_dir, "anomaly_in_trial_dir")
+    os.makedirs(anomaly_in_trial_dir)
+    anomaly_by_trial_dir = os.path.join(visualization_by_dimension_dir, "anomaly_by_trial_dir")
+    os.makedirs(anomaly_by_trial_dir)
 
     for dim in dimensions:
         trial_amount = len(to_plot)
@@ -189,7 +209,7 @@ if __name__ == "__main__":
             tag_multimodal_df, \
             list_of_anomaly_start_time, \
             list_of_anomaly_df, \
-            resampled_anomaly_df = tmp
+            list_of_resampled_anomaly_df = tmp
 
             ax = axs_for_ait_fig[idx]
             ax.plot(
@@ -205,13 +225,48 @@ if __name__ == "__main__":
 
             for anomaly_df in list_of_anomaly_df:
                 ax.plot(
-                    anomaly_df['time'].tolist(),
+                    anomaly_df.index.tolist(),
                     anomaly_df[dim].tolist(),
                     color='red',
                 )
+
+            trial_dir = os.path.join(anomaly_by_trial_dir, f)
+            if not os.path.isdir(trial_dir):
+                os.makedirs(trial_dir)
+    
+            anomaly_amount = len(list_of_anomaly_df)
+            anomalies_in_this_trial_fig, axs_for_aitt_fig = plt.subplots(nrows=anomaly_amount, ncols=2, sharex=True, sharey=True)
+            if anomaly_amount == 1:
+                axs_for_aitt_fig.reshape(1, 2)
+
+            for anomaly_idx in range(len(list_of_anomaly_df)):
+                anomaly_df = list_of_anomaly_df[anomaly_idx]
+                ax = axs_for_aitt_fig[anomaly_idx, 0] 
+                time_x = anomaly_df.index-anomaly_df.index[0]
+                ax.plot(
+                    time_x.tolist(),
+                    anomaly_df[dim].tolist(), 
+                )
+                anomaly_name = 'no_%s_from_trial_%s'%(anomaly_idx, f)
+                ax.set_title(anomaly_name)
+
+                resampled_anomaly_df = list_of_resampled_anomaly_df[anomaly_idx]
+                ax = axs_for_aitt_fig[anomaly_idx, 1] 
+                time_x = resampled_anomaly_df.index-resampled_anomaly_df.index[0]
+                ax.plot(
+                    time_x.tolist(),
+                    resampled_anomaly_df[dim].tolist(), 
+                )
+                anomaly_name = 'resampled_%shz_no_%s_from_trial_%s'%(anomaly_resample_hz, anomaly_idx, f)
+                ax.set_title(anomaly_name)
+            anomalies_in_this_trial_fig.set_size_inches(16,4*anomaly_amount)
+            anomalies_in_this_trial_fig.suptitle(f+' '+dim)
+            anomalies_in_this_trial_fig.savefig(os.path.join(trial_dir, 'trial_'+f+'_'+dim+'.png'))
+            plt.close(anomalies_in_this_trial_fig)
                     
         anomaly_in_trial_fig.set_size_inches(16,4*trial_amount)
         anomaly_in_trial_fig.suptitle(dim)
-        anomaly_in_trial_fig.savefig(os.path.join(visualization_by_dimension_dir, dim+'.png'))
+        anomaly_in_trial_fig.savefig(os.path.join(anomaly_in_trial_dir, dim+'.png'))
+        plt.close(anomaly_in_trial_fig)
 
 
