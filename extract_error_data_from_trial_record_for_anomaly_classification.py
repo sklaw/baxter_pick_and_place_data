@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 from mpl_toolkits.mplot3d import Axes3D
 import load_data_folder
 import plot_data_in_panda_df
@@ -55,17 +55,41 @@ def color_bg_and_anomaly(
 
 
 
-def get_anomaly_range(tag_df, flag_df):
+def get_anomaly_range(flag_df):
     list_of_anomaly_start_time = [flag_df['time'][0]]
     
     flag_df_length = flag_df.shape[0]
     for idx in range(1, flag_df_length):
         now_time = flag_df['time'][idx]
         last_time = flag_df['time'][idx-1]
-        if now_time-last_time > timedelta(seconds=2):
+        if now_time-last_time > 2:
             list_of_anomaly_start_time.append(now_time) 
 
     return list_of_anomaly_start_time
+
+def get_list_of_LfD(tag_df):
+    list_of_LfD = []
+    tag_df_length = tag_df.shape[0]
+    start_idx = None
+    end_idx = None
+    for idx in range(0, tag_df_length):
+        if tag_df['.tag'][idx] == -3:
+            if start_idx is None:
+                start_idx = idx
+            elif idx == tag_df_length-1:
+                end_idx = idx
+        else:
+            if start_idx is not None:
+                end_idx = idx
+
+        if end_idx is not None:
+            LfD_df = tag_df.loc[start_idx: end_idx]
+            LfD_df = LfD_df.drop('.tag', axis=1).set_index('time')
+            list_of_LfD.append(LfD_df)
+            start_idx = None
+            end_idx = None
+            
+    return list_of_LfD
 
 if __name__ == "__main__":
     from optparse import OptionParser
@@ -120,29 +144,32 @@ if __name__ == "__main__":
         else:
             raise Exception("folder %s doesn't have hmm_online_result csv file."%(path,))
 
+        # read
         tag_multimodal_df = pd.read_csv(tag_multimodal_csv_path, sep=',')
         tag_multimodal_df = tag_multimodal_df[interested_data_fields]
         hmm_online_result_df = pd.read_csv(hmm_online_result_csv_path, sep=',')
 
-
-        from dateutil import parser
-        tag_multimodal_df['time'] = tag_multimodal_df['time'].apply(lambda x: parser.parse(x))
-        hmm_online_result_df['time'] = hmm_online_result_df['time'].apply(lambda x: parser.parse(x))
+        # trim
         tag_multimodal_df, hmm_online_result_df = trim_non_trial_data(tag_multimodal_df, hmm_online_result_df)
         tag_multimodal_df.index = np.arange(len(tag_multimodal_df))
         hmm_online_result_df.index = np.arange(len(hmm_online_result_df))
 
+        # process time
+        from dateutil import parser
+        tag_multimodal_df['time'] = tag_multimodal_df['time'].apply(lambda x: parser.parse(x))
+        trial_start_datetime = tag_multimodal_df['time'][0]
+        tag_multimodal_df['time'] -= trial_start_datetime
+        tag_multimodal_df['time'] = tag_multimodal_df['time'].apply(lambda x: x.total_seconds())
+        hmm_online_result_df['time'] = hmm_online_result_df['time'].apply(lambda x: parser.parse(x))
+        hmm_online_result_df['time'] -= trial_start_datetime
+        hmm_online_result_df['time'] = hmm_online_result_df['time'].apply(lambda x: x.total_seconds())
+
         list_of_anomaly_start_time = get_anomaly_range(
-            tag_multimodal_df,
             hmm_online_result_df,
         )
-
-        start_t = tag_multimodal_df['time'][0]
-        tag_multimodal_df['time'] -= start_t
-        tag_multimodal_df['time'] = tag_multimodal_df['time'].apply(lambda x: x.total_seconds())
-        for i in range(len(list_of_anomaly_start_time)):
-            list_of_anomaly_start_time[i] -= start_t
-            list_of_anomaly_start_time[i] = list_of_anomaly_start_time[i].total_seconds()
+        list_of_LfD = get_list_of_LfD(
+            tag_multimodal_df,
+        )
 
         from birl.robot_introspection_pkg.anomaly_sampling_config import anomaly_window_size_in_sec, anomaly_resample_hz
         list_of_anomaly_df = []
@@ -179,6 +206,7 @@ if __name__ == "__main__":
             list_of_anomaly_start_time,
             list_of_anomaly_df,
             list_of_resampled_anomaly_df,
+            list_of_LfD,
         ])
 
     if not PLOT_VERIFICATION:
@@ -209,7 +237,8 @@ if __name__ == "__main__":
             tag_multimodal_df, \
             list_of_anomaly_start_time, \
             list_of_anomaly_df, \
-            list_of_resampled_anomaly_df = tmp
+            list_of_resampled_anomaly_df, \
+            list_of_LfD = tmp
 
             ax = axs_for_ait_fig[idx]
             ax.plot(
@@ -229,19 +258,26 @@ if __name__ == "__main__":
                     anomaly_df[dim].tolist(),
                     color='red',
                 )
+    
+            for LfD_df in list_of_LfD:
+                ax.plot(
+                    LfD_df.index.tolist(),
+                    LfD_df[dim].tolist(),
+                    color='yellow',
+                )
 
             trial_dir = os.path.join(anomaly_by_trial_dir, f)
             if not os.path.isdir(trial_dir):
                 os.makedirs(trial_dir)
     
             anomaly_amount = len(list_of_anomaly_df)
-            anomalies_in_this_trial_fig, axs_for_aitt_fig = plt.subplots(nrows=anomaly_amount, ncols=2, sharex=True, sharey=True)
+            anomalies_by_trial_fig, axs_for_abt_fig = plt.subplots(nrows=anomaly_amount, ncols=2, sharex=True, sharey=True)
             if anomaly_amount == 1:
-                axs_for_aitt_fig.reshape(1, 2)
+                axs_for_abt_fig.reshape(1, 2)
 
             for anomaly_idx in range(len(list_of_anomaly_df)):
                 anomaly_df = list_of_anomaly_df[anomaly_idx]
-                ax = axs_for_aitt_fig[anomaly_idx, 0] 
+                ax = axs_for_abt_fig[anomaly_idx, 0] 
                 time_x = anomaly_df.index-anomaly_df.index[0]
                 ax.plot(
                     time_x.tolist(),
@@ -251,7 +287,7 @@ if __name__ == "__main__":
                 ax.set_title(anomaly_name)
 
                 resampled_anomaly_df = list_of_resampled_anomaly_df[anomaly_idx]
-                ax = axs_for_aitt_fig[anomaly_idx, 1] 
+                ax = axs_for_abt_fig[anomaly_idx, 1] 
                 time_x = resampled_anomaly_df.index-resampled_anomaly_df.index[0]
                 ax.plot(
                     time_x.tolist(),
@@ -259,10 +295,10 @@ if __name__ == "__main__":
                 )
                 anomaly_name = 'resampled_%shz_no_%s_from_trial_%s'%(anomaly_resample_hz, anomaly_idx, f)
                 ax.set_title(anomaly_name)
-            anomalies_in_this_trial_fig.set_size_inches(16,4*anomaly_amount)
-            anomalies_in_this_trial_fig.suptitle(f+' '+dim)
-            anomalies_in_this_trial_fig.savefig(os.path.join(trial_dir, 'trial_'+f+'_'+dim+'.png'))
-            plt.close(anomalies_in_this_trial_fig)
+            anomalies_by_trial_fig.set_size_inches(16,4*anomaly_amount)
+            anomalies_by_trial_fig.suptitle(f+' '+dim)
+            anomalies_by_trial_fig.savefig(os.path.join(trial_dir, 'trial_'+f+'_'+dim+'.png'))
+            plt.close(anomalies_by_trial_fig)
                     
         anomaly_in_trial_fig.set_size_inches(16,4*trial_amount)
         anomaly_in_trial_fig.suptitle(dim)
