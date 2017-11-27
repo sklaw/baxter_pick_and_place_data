@@ -11,6 +11,8 @@ import numpy as np
 from matplotlib.pyplot import cm 
 import copy
 import birl.robot_introspection_pkg.multi_modal_config as mmc
+from birl.robot_introspection_pkg.anomaly_sampling_config import anomaly_window_size_in_sec, anomaly_resample_hz
+from birl.robot_introspection_pkg.general_config import trial_resample_hz
 
 PLOT_VERIFICATION = True 
 
@@ -119,6 +121,10 @@ if __name__ == "__main__":
     os.makedirs(raw_anomalies_dir)
     resampled_anomalies_dir = os.path.join(extracted_anomalies_dir, 'resampled_anomalies_dir')
     os.makedirs(resampled_anomalies_dir)
+    raw_lfd_dir = os.path.join(extracted_anomalies_dir, 'raw_lfd_dir')
+    os.makedirs(raw_lfd_dir)
+    resampled_lfd_dir = os.path.join(extracted_anomalies_dir, 'resampled_lfd_dir')
+    os.makedirs(resampled_lfd_dir)
 
     interested_data_fields = copy.deepcopy(mmc.interested_data_fields)
     interested_data_fields.append('time')
@@ -170,8 +176,17 @@ if __name__ == "__main__":
         list_of_LfD = get_list_of_LfD(
             tag_multimodal_df,
         )
+        for lfd_idx, lfd_df in enumerate(list_of_LfD):
+            lfd_name = 'no_%s_from_trial_%s'%(lfd_idx, f)
+            lfd_df.to_csv(os.path.join(raw_lfd_dir, lfd_name+'.csv'))
+            lfd_start = lfd_df.index[0]
+            lfd_end = lfd_df.index[-1]
+            new_time_index = np.linspace(lfd_start, lfd_end, (lfd_end-lfd_start)*trial_resample_hz)
+            old_time_index = lfd_df.index
+            resampled_lfd_df = lfd_df.reindex(old_time_index.union(new_time_index)).interpolate(method='linear', axis=0).ix[new_time_index]
+            lfd_name = 'resampled_%shz_no_%s_from_trial_%s'%(trial_resample_hz, lfd_idx, f)
+            resampled_lfd_df.to_csv(os.path.join(resampled_lfd_dir, lfd_name+'.csv'))
 
-        from birl.robot_introspection_pkg.anomaly_sampling_config import anomaly_window_size_in_sec, anomaly_resample_hz
         list_of_anomaly_df = []
         list_of_resampled_anomaly_df = []
         for anomaly_idx, anomaly_t in enumerate(list_of_anomaly_start_time):
