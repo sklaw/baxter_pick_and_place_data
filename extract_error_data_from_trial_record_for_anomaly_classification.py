@@ -69,8 +69,8 @@ def get_anomaly_range(flag_df):
 
     return list_of_anomaly_start_time
 
-def get_list_of_LfD(tag_df):
-    list_of_LfD = []
+def get_list_of_lfd_df(tag_df):
+    list_of_lfd_df = []
     tag_df_length = tag_df.shape[0]
     start_idx = None
     end_idx = None
@@ -87,11 +87,11 @@ def get_list_of_LfD(tag_df):
         if end_idx is not None:
             LfD_df = tag_df.loc[start_idx: end_idx]
             LfD_df = LfD_df.drop('.tag', axis=1).set_index('time')
-            list_of_LfD.append(LfD_df)
+            list_of_lfd_df.append(LfD_df)
             start_idx = None
             end_idx = None
             
-    return list_of_LfD
+    return list_of_lfd_df
 
 if __name__ == "__main__":
     from optparse import OptionParser
@@ -165,18 +165,19 @@ if __name__ == "__main__":
         tag_multimodal_df['time'] = tag_multimodal_df['time'].apply(lambda x: parser.parse(x))
         trial_start_datetime = tag_multimodal_df['time'][0]
         tag_multimodal_df['time'] -= trial_start_datetime
-        tag_multimodal_df['time'] = tag_multimodal_df['time'].apply(lambda x: x.total_seconds())
+        tag_multimodal_df['time'] = tag_multimodal_df['time'].apply(lambda x: x/np.timedelta64(1, 's'))
         hmm_online_result_df['time'] = hmm_online_result_df['time'].apply(lambda x: parser.parse(x))
         hmm_online_result_df['time'] -= trial_start_datetime
-        hmm_online_result_df['time'] = hmm_online_result_df['time'].apply(lambda x: x.total_seconds())
+        hmm_online_result_df['time'] = hmm_online_result_df['time'].apply(lambda x: x/np.timedelta64(1, 's'))
 
         list_of_anomaly_start_time = get_anomaly_range(
             hmm_online_result_df,
         )
-        list_of_LfD = get_list_of_LfD(
+        list_of_lfd_df = get_list_of_lfd_df(
             tag_multimodal_df,
         )
-        for lfd_idx, lfd_df in enumerate(list_of_LfD):
+        list_of_resampled_lfd_df = []
+        for lfd_idx, lfd_df in enumerate(list_of_lfd_df):
             lfd_name = 'no_%s_from_trial_%s'%(lfd_idx, f)
             lfd_df.to_csv(os.path.join(raw_lfd_dir, lfd_name+'.csv'))
             lfd_start = lfd_df.index[0]
@@ -186,6 +187,7 @@ if __name__ == "__main__":
             resampled_lfd_df = lfd_df.reindex(old_time_index.union(new_time_index)).interpolate(method='linear', axis=0).ix[new_time_index]
             lfd_name = 'resampled_%shz_no_%s_from_trial_%s'%(trial_resample_hz, lfd_idx, f)
             resampled_lfd_df.to_csv(os.path.join(resampled_lfd_dir, lfd_name+'.csv'))
+            list_of_resampled_lfd_df.append(resampled_lfd_df)
 
         list_of_anomaly_df = []
         list_of_resampled_anomaly_df = []
@@ -221,7 +223,8 @@ if __name__ == "__main__":
             list_of_anomaly_start_time,
             list_of_anomaly_df,
             list_of_resampled_anomaly_df,
-            list_of_LfD,
+            list_of_lfd_df,
+            list_of_resampled_lfd_df,
         ])
 
     if not PLOT_VERIFICATION:
@@ -236,16 +239,18 @@ if __name__ == "__main__":
 
     visualization_by_dimension_dir = os.path.join(extracted_anomalies_dir, 'visualization_by_dimension_dir')
     os.makedirs(visualization_by_dimension_dir)
-    anomaly_in_trial_dir = os.path.join(visualization_by_dimension_dir, "anomaly_in_trial_dir")
-    os.makedirs(anomaly_in_trial_dir)
+    colored_trial_dir = os.path.join(visualization_by_dimension_dir, "colored_trial_dir")
+    os.makedirs(colored_trial_dir)
     anomaly_by_trial_dir = os.path.join(visualization_by_dimension_dir, "anomaly_by_trial_dir")
     os.makedirs(anomaly_by_trial_dir)
+    lfd_by_trial_dir = os.path.join(visualization_by_dimension_dir, "lfd_by_trial_dir")
+    os.makedirs(lfd_by_trial_dir)
 
     for dim in dimensions:
         trial_amount = len(to_plot)
-        anomaly_in_trial_fig, axs_for_ait_fig = plt.subplots(nrows=trial_amount, ncols=1, sharex=True, sharey=True)
+        colored_trial_fig, colored_trial_axs = plt.subplots(nrows=trial_amount, ncols=1, sharex=True, sharey=True)
         if trial_amount == 1:
-            axs_for_ait_fig = [axs_for_ait_fig]
+            colored_trial_axs = [colored_trial_axs]
 
         for idx, tmp in enumerate(to_plot):
             f, \
@@ -253,9 +258,10 @@ if __name__ == "__main__":
             list_of_anomaly_start_time, \
             list_of_anomaly_df, \
             list_of_resampled_anomaly_df, \
-            list_of_LfD = tmp
+            list_of_lfd_df, \
+            list_of_resampled_lfd_df = tmp
 
-            ax = axs_for_ait_fig[idx]
+            ax = colored_trial_axs[idx]
             ax.plot(
                 tag_multimodal_df['time'].tolist(),
                 tag_multimodal_df[dim].tolist(), 
@@ -266,58 +272,90 @@ if __name__ == "__main__":
                 tag_multimodal_df,
                 list_of_anomaly_start_time,
             )
-
             for anomaly_df in list_of_anomaly_df:
                 ax.plot(
                     anomaly_df.index.tolist(),
                     anomaly_df[dim].tolist(),
                     color='red',
                 )
-    
-            for LfD_df in list_of_LfD:
+            for LfD_df in list_of_lfd_df:
                 ax.plot(
                     LfD_df.index.tolist(),
                     LfD_df[dim].tolist(),
                     color='yellow',
                 )
 
+            
+
             trial_dir = os.path.join(anomaly_by_trial_dir, f)
             if not os.path.isdir(trial_dir):
                 os.makedirs(trial_dir)
-    
             anomaly_amount = len(list_of_anomaly_df)
-            anomalies_by_trial_fig, axs_for_abt_fig = plt.subplots(nrows=anomaly_amount, ncols=2, sharex=True, sharey=True)
+            anomaly_by_trial_fig, anomaly_by_trial_axs = plt.subplots(nrows=anomaly_amount, ncols=2, sharex=True, sharey=True)
             if anomaly_amount == 1:
-                axs_for_abt_fig.reshape(1, 2)
-
+                anomaly_by_trial_axs = anomaly_by_trial_axs.reshape((1, 2))
             for anomaly_idx in range(len(list_of_anomaly_df)):
                 anomaly_df = list_of_anomaly_df[anomaly_idx]
-                ax = axs_for_abt_fig[anomaly_idx, 0] 
+                ax = anomaly_by_trial_axs[anomaly_idx, 0] 
                 time_x = anomaly_df.index-anomaly_df.index[0]
                 ax.plot(
                     time_x.tolist(),
                     anomaly_df[dim].tolist(), 
                 )
-                anomaly_name = 'no_%s_from_trial_%s'%(anomaly_idx, f)
+                anomaly_name = 'no_%s_anomaly_from_trial_%s'%(anomaly_idx, f)
                 ax.set_title(anomaly_name)
 
                 resampled_anomaly_df = list_of_resampled_anomaly_df[anomaly_idx]
-                ax = axs_for_abt_fig[anomaly_idx, 1] 
+                ax = anomaly_by_trial_axs[anomaly_idx, 1] 
                 time_x = resampled_anomaly_df.index-resampled_anomaly_df.index[0]
                 ax.plot(
                     time_x.tolist(),
                     resampled_anomaly_df[dim].tolist(), 
                 )
-                anomaly_name = 'resampled_%shz_no_%s_from_trial_%s'%(anomaly_resample_hz, anomaly_idx, f)
+                anomaly_name = 'resampled_%shz_no_%s_anomaly_from_trial_%s'%(anomaly_resample_hz, anomaly_idx, f)
                 ax.set_title(anomaly_name)
-            anomalies_by_trial_fig.set_size_inches(16,4*anomaly_amount)
-            anomalies_by_trial_fig.suptitle(f+' '+dim)
-            anomalies_by_trial_fig.savefig(os.path.join(trial_dir, 'trial_'+f+'_'+dim+'.png'))
-            plt.close(anomalies_by_trial_fig)
-                    
-        anomaly_in_trial_fig.set_size_inches(16,4*trial_amount)
-        anomaly_in_trial_fig.suptitle(dim)
-        anomaly_in_trial_fig.savefig(os.path.join(anomaly_in_trial_dir, dim+'.png'))
-        plt.close(anomaly_in_trial_fig)
+            anomaly_by_trial_fig.set_size_inches(16,4*anomaly_amount)
+            anomaly_by_trial_fig.suptitle(f+' '+dim)
+            anomaly_by_trial_fig.savefig(os.path.join(trial_dir, 'trial_'+f+'_'+dim+'.png'))
+            plt.close(anomaly_by_trial_fig)
+
+
+
+            trial_dir = os.path.join(lfd_by_trial_dir, f)
+            if not os.path.isdir(trial_dir):
+                os.makedirs(trial_dir)
+            lfd_amount = len(list_of_lfd_df)
+            lfd_by_trial_fig, lfd_by_trial_axs = plt.subplots(nrows=lfd_amount, ncols=2, sharex=True, sharey=True)
+            if lfd_amount == 1:
+                lfd_by_trial_axs = lfd_by_trial_axs.reshape((1, 2))
+            for lfd_idx in range(len(list_of_lfd_df)):
+                lfd_df = list_of_lfd_df[lfd_idx]
+                ax = lfd_by_trial_axs[lfd_idx, 0] 
+                time_x = lfd_df.index-lfd_df.index[0]
+                ax.plot(
+                    time_x.tolist(),
+                    lfd_df[dim].tolist(), 
+                )
+                lfd_name = 'no_%s_lfd_from_trial_%s'%(lfd_idx, f)
+                ax.set_title(lfd_name)
+
+                resampled_lfd_df = list_of_resampled_lfd_df[lfd_idx]
+                ax = lfd_by_trial_axs[lfd_idx, 1] 
+                time_x = resampled_lfd_df.index-resampled_lfd_df.index[0]
+                ax.plot(
+                    time_x.tolist(),
+                    resampled_lfd_df[dim].tolist(), 
+                )
+                lfd_name = 'resampled_%shz_no_%s_lfd_from_trial_%s'%(trial_resample_hz, lfd_idx, f)
+                ax.set_title(lfd_name)
+            lfd_by_trial_fig.set_size_inches(16,4*lfd_amount)
+            lfd_by_trial_fig.suptitle(f+' '+dim)
+            lfd_by_trial_fig.savefig(os.path.join(trial_dir, 'trial_'+f+'_'+dim+'.png'))
+            plt.close(lfd_by_trial_fig)
+
+        colored_trial_fig.set_size_inches(16,4*trial_amount)
+        colored_trial_fig.suptitle(dim)
+        colored_trial_fig.savefig(os.path.join(colored_trial_dir, 'dim'+dim+'.png'))
+        plt.close(colored_trial_fig)
 
 
