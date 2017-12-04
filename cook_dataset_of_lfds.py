@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import birl.robot_introspection_pkg.multi_modal_config as mmc
 import copy
 import numpy as np
+import shutil
 
 PLOT_VERIFICATION = True 
 
@@ -42,6 +43,10 @@ if __name__ == "__main__":
     dataset_of_resampled_DTWed_lfd_dir = os.path.join(base_folder, 'dataset_of_resampled_DTWed_lfd_dir')
     if not os.path.isdir(dataset_of_resampled_DTWed_lfd_dir):
         os.makedirs(dataset_of_resampled_DTWed_lfd_dir)
+    else:
+        shutil.rmtree(dataset_of_resampled_DTWed_lfd_dir)
+        os.makedirs(dataset_of_resampled_DTWed_lfd_dir)
+         
 
     df_group_by_label = {}
 
@@ -82,16 +87,22 @@ if __name__ == "__main__":
 
             dtwed_df = ref_df.copy()
             dtwed_df[dtwed_df.columns[1:]]= dtwed_mat
-            file_name = "label_(%s)_from_(%s)"%(label, target_f)
+            list_of_dtwed_df.append([target_f, dtwed_df])
+
+        for i in range(len(list_of_dtwed_df)):
+            f, df = list_of_dtwed_df[i]
+            file_name = "label_(%s)_from_(%s)"%(label, f)
             dtwed_df.to_csv(os.path.join(dataset_of_resampled_DTWed_lfd_dir, file_name+".csv"))
-            list_of_dtwed_df.append([f, dtwed_df])
 
 
         if not PLOT_VERIFICATION:
             continue
         visualization_by_dimension_dir = os.path.join(base_folder, 'visualization_by_dimension_dir')
-        DTWed_resampled_lfd_dir = os.path.join(visualization_by_dimension_dir, "DTWed_resampled_lfd_dir") 
+        DTWed_resampled_lfd_dir = os.path.join(visualization_by_dimension_dir, "DTWed_resampled_lfd_dir", "label_%s"%(label, )) 
         if not os.path.isdir(DTWed_resampled_lfd_dir):
+            os.makedirs(DTWed_resampled_lfd_dir)
+        else:
+            shutil.rmtree(DTWed_resampled_lfd_dir)
             os.makedirs(DTWed_resampled_lfd_dir)
 
         dimensions = copy.deepcopy(mmc.interested_data_fields)
