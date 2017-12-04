@@ -315,7 +315,7 @@ if __name__ == "__main__":
                 anomaly_name = 'resampled_%shz_no_%s_anomaly_from_trial_%s'%(anomaly_resample_hz, anomaly_idx, f)
                 ax.set_title(anomaly_name)
             anomaly_by_trial_fig.set_size_inches(16,4*anomaly_amount)
-            anomaly_by_trial_fig.suptitle(f+' '+dim)
+            anomaly_by_trial_fig.suptitle('trial_'+f+'_'+dim)
             anomaly_by_trial_fig.savefig(os.path.join(trial_dir, 'trial_'+f+'_'+dim+'.png'))
             plt.close(anomaly_by_trial_fig)
 
@@ -349,7 +349,7 @@ if __name__ == "__main__":
                 lfd_name = 'resampled_%shz_no_%s_lfd_from_trial_%s'%(trial_resample_hz, lfd_idx, f)
                 ax.set_title(lfd_name)
             lfd_by_trial_fig.set_size_inches(16,4*lfd_amount)
-            lfd_by_trial_fig.suptitle(f+' '+dim)
+            lfd_by_trial_fig.suptitle('trial_'+f+'_'+dim)
             lfd_by_trial_fig.savefig(os.path.join(trial_dir, 'trial_'+f+'_'+dim+'.png'))
             plt.close(lfd_by_trial_fig)
 
