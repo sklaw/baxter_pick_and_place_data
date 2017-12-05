@@ -8,6 +8,7 @@ import birl.robot_introspection_pkg.multi_modal_config as mmc
 import copy
 import numpy as np
 import shutil
+from sklearn.preprocessing import normalize, MinMaxScaler
 
 PLOT_VERIFICATION = True 
 
@@ -63,31 +64,41 @@ if __name__ == "__main__":
     for label in df_group_by_label:
         list_of_df = df_group_by_label[label]
 
-        ref_f, ref_df = list_of_df[0]
+
+        list_of_preprocessed_df = []
+        scaler = MinMaxScaler()
+        for i in range(0, len(list_of_df)):
+            f, df = list_of_df[i]
+            preprosessed_df = df.copy()
+            mat = preprosessed_df.values[:, 1:]
+            mat = scaler.fit_transform(mat)
+            preprosessed_df[preprosessed_df.columns[1:]] = mat
+            list_of_preprocessed_df.append([f, preprosessed_df]) 
+
+        ref_idx = np.argmin([len(i[1]) for i in list_of_preprocessed_df])
+        ref_f, ref_df = list_of_preprocessed_df[ref_idx]
         ref_mat = ref_df.values[:, 1:]
 
-        list_of_dtwed_df = [[ref_f, ref_df]]
-        for i in range(1, len(list_of_df)):
-            target_f, target_df = list_of_df[i]
-            target_mat = target_df.values[:, 1:]
+        list_of_dtwed_df = []
+        for i in range(0, len(list_of_preprocessed_df)):
+            f, raw_df = list_of_df[i]
+            f, preprocessed_df = list_of_preprocessed_df[i]
+            preprocessed_mat = preprocessed_df.values[:, 1:]
 
-            dist, cost, acc, path = dtw.dtw(ref_mat, target_mat, dist=lambda x, y: np.linalg.norm(x - y, ord=2))
+            dist, cost, acc, path = dtw.dtw(ref_mat, preprocessed_mat, dist=lambda x, y: np.linalg.norm(x - y, ord=2))
             list_of_ref_t = path[0]
             list_of_target_t = path[1]
 
-            dtwed_mat = ref_mat.copy()
+            dtwed_df = ref_df.copy()
             tx = 0
             for idx, t in enumerate(list_of_ref_t):
                 if t == tx:
                     ty = list_of_target_t[idx]
-                    dtwed_mat[tx] = target_mat[ty]
+                    dtwed_df.values[tx] = raw_df.values[ty]
                     tx += 1
                 else:
                     continue
-
-            dtwed_df = ref_df.copy()
-            dtwed_df[dtwed_df.columns[1:]]= dtwed_mat
-            list_of_dtwed_df.append([target_f, dtwed_df])
+            list_of_dtwed_df.append([f, dtwed_df])
 
         for i in range(len(list_of_dtwed_df)):
             f, df = list_of_dtwed_df[i]
@@ -111,11 +122,12 @@ if __name__ == "__main__":
             del dimensions[idx_to_del]
         for dim in dimensions:
             lfd_amount = len(list_of_df)
-            dtwed_lfd_fig, dtwed_lfd_axs = plt.subplots(nrows=lfd_amount, ncols=2, sharex=True, sharey=True)
+            dtwed_lfd_fig, dtwed_lfd_axs = plt.subplots(nrows=lfd_amount, ncols=3, sharex=True, sharey=True)
             if lfd_amount == 1:
-                dtwed_lfd_axs = dtwed_lfd_axs.reshape((1, 2))
+                dtwed_lfd_axs = dtwed_lfd_axs.reshape((1, 3))
             for i in range(0, len(list_of_df)):
                 f, raw_df = list_of_df[i]
+                f, preprocessed_df = list_of_preprocessed_df[i]
                 f, dtwed_df = list_of_dtwed_df[i]
 
                 ax = dtwed_lfd_axs[i, 0] 
@@ -128,6 +140,15 @@ if __name__ == "__main__":
                 ax.set_title(title)
 
                 ax = dtwed_lfd_axs[i, 1] 
+                time_x = preprocessed_df.index-preprocessed_df.index[0]
+                ax.plot(
+                    time_x.tolist(),
+                    preprocessed_df[dim].tolist(), 
+                )
+                title = 'preprocessed_df'
+                ax.set_title(title)
+
+                ax = dtwed_lfd_axs[i, 2] 
                 time_x = dtwed_df.index-dtwed_df.index[0]
                 ax.plot(
                     time_x.tolist(),
