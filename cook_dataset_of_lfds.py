@@ -103,7 +103,7 @@ if __name__ == "__main__":
         for i in range(len(list_of_dtwed_df)):
             f, df = list_of_dtwed_df[i]
             file_name = "label_(%s)_from_(%s)"%(label, f)
-            dtwed_df.to_csv(os.path.join(dataset_of_resampled_DTWed_lfd_dir, file_name+".csv"))
+            df.to_csv(os.path.join(dataset_of_resampled_DTWed_lfd_dir, file_name+".csv"))
 
 
         if not PLOT_VERIFICATION:
