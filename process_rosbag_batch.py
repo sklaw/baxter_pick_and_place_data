@@ -1,4 +1,5 @@
 import os
+import rospy
 
 def put_bag_into_folder(base_folder):
     files = os.listdir(options.base_folder)
@@ -43,6 +44,7 @@ def process_bag_to_csv(base_folder, topic_names):
         tuned_rosbag_to_csv.bag_to_csv(fake_options, os.path.abspath(bag_file_path))
 
 if __name__ == "__main__":
+    rospy.init_node("rosbag_batch_processor")
     from optparse import OptionParser
     usage = "usage: %prog -d base_folder_path"
     parser = OptionParser(usage=usage)
