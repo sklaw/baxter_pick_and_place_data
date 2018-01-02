@@ -3,12 +3,14 @@ import pandas as pd
 import ipdb
 
 def load_data_of_ben_struct(base_folder):
+    print "load_data_of_ben_struct"
     files = os.listdir(base_folder)
     pandadf_group_by_foldername = {}
     for f in files:
         path = os.path.join(base_folder, f)
         if not os.path.isdir(path):
             continue
+        print "processing", f
 
         if os.path.isfile(os.path.join(path, f+'-tag_multimodal.csv')):
             csv_file_path = os.path.join(path, f+'-tag_multimodal.csv')
@@ -85,7 +87,7 @@ def load_data_of_rcbht_struct(base_folder):
 
 
 def run(base_folder):
-    if 'baxter' in base_folder.lower():
-        return load_data_of_ben_struct(base_folder)
-    elif 'hiro' in base_folder.lower():
+    if 'hiro' in base_folder.lower():
         return load_data_of_rcbht_struct(base_folder)
+    else:
+        return load_data_of_ben_struct(base_folder)
